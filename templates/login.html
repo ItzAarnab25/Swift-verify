@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polling Booth Officer Authentication</title>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB); /* Lighter, calming gradient */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333; /* Darker text for contrast */
+        }
+
+        .div-container {
+            background-color: rgba(255, 255, 255, 0.8); /* Slightly less transparent */
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); /* Reduced shadow */
+            width: 450px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #1976D2; /* Primary blue heading */
+            margin-bottom: 30px;
+            border-bottom: 2px solid #BBDEFB;
+            padding-bottom: 15px;
+            font-size: 2em;
+            letter-spacing: 1px;
+        }
+
+        p {
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: calc(100% - 22px);
+            padding: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #BBDEFB;
+            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.7); /* Slightly transparent input */
+            color: #333;
+            font-size: 1em;
+        }
+
+        button[type="submit"] {
+            background: linear-gradient(to right, #1E88E5, #64B5F6); /* Lighter gradient button */
+            color: white;
+            padding: 14px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Reduced button shadow */
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25); /* Reduced hover shadow */
+        }
+
+        .p-error {
+            color: #D32F2F; /* Darker red for light background */
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: rgba(255, 235, 238, 0.8); /* Light red background */
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="div-container">
+        <h1>Polling Booth Officer Authentication</h1>
+        <p>This system is for the exclusive use of authorized polling booth officers for secure voter verification.</p>
+
+        {% if error %}
+            <p class="p-error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST">
+            <label for="username">Officer ID:</label>
+            <input type="text" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" name="password" required>
+
+            <button type="submit">Authenticate Officer</button>
+        </form>
+    </div>
+</body>
+</html>

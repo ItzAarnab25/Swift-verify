@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter ID Authentication - Polling Booth</title>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #37474F, #455A64);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: white;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            width: 600px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            color: #e0fbfc;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 2.5em;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 15px;
+            margin-bottom: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1em;
+        }
+
+        input[type="text"]:focus {
+            border-color: #89cff0;
+            box-shadow: 0 0 5px rgba(137, 207, 240, 0.5);
+        }
+
+        button[type="submit"], .biometric-button {
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.2em;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 15px;
+        }
+
+        button[type="submit"]:hover, .biometric-button:hover,
+        button[type="submit"]:focus, .biometric-button:focus {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            outline: none;
+        }
+
+        .message {
+            margin-top: 30px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .message.success {
+            background-color: rgba(40, 167, 69, 0.8);
+            color: white;
+        }
+
+        .message.error {
+            background-color: rgba(220, 53, 69, 0.8);
+            color: white;
+        }
+
+        .message.success::before {
+            content: '\f00c';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            margin-right: 10px;
+        }
+
+        .message.error::before {
+            content: '\f06a';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            margin-right: 10px;
+        }
+
+        .voter-info {
+            margin-top: 40px;
+            border-top: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            text-align: left;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .voter-info p {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .voter-info strong {
+            color: #e0fbfc;
+        }
+
+        .logout-link {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .logout-link a {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #89cff0;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .logout-link a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .biometric-button-container{
+          margin-top:20px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Voter ID Authentication</h1>
+        <form method="POST">
+            <label for="aadhar_id">Enter Voter Aadhar ID:</label>
+            <input type="text" name="aadhar_id" required>
+            <button type="submit">Authenticate Voter</button>
+        </form>
+
+        {% if status_message %}
+            <p class="message {% if "not found" in status_message %}error{% else %}success{% endif %}">{{ status_message }}</p>
+        {% endif %}
+
+        {% if voter_data %}
+            <div class="voter-info">
+                <p><strong>Name:</strong> {{ voter_data[1] }}</p>
+                <p><strong>Date of Birth:</strong> {{ voter_data[2] }}</p>
+                <p><strong>Age:</strong> {{ voter_data[3] }}</p>
+                <p><strong>Mobile No.:</strong> {{ voter_data[4] }}</p>
+                <p><strong>Address:</strong> {{ voter_data[5] }}</p>
+            </div>
+            {% if show_biometric %}
+                <div class="biometric-button-container">
+                    <form action="{{ url_for('biometric_verification') }}" method="POST">
+                        <input type="hidden" name="aadhar_id" value="{{ aadhar_id }}">
+                        <button type="submit" class="biometric-button">Biometric Verification</button>
+                    </form>
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <div class="logout-link">
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
+</body>
+</html>
