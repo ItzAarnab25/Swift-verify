@@ -1,9 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voter ID Authentication - Polling Booth</title>
+    <title>Voter Authentication with Camera</title>
     <style>
         body {
             font-family: 'Montserrat', sans-serif;
@@ -22,9 +20,18 @@
             padding: 50px;
             border-radius: 15px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-            width: 600px;
+            width: 80%;
+            max-width: 900px;
             text-align: center;
             border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .form-section, .camera-section {
+            width: 48%;
+            margin: 10px;
         }
 
         h1 {
@@ -33,6 +40,7 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             font-size: 2.5em;
+            width: 100%;
         }
 
         label {
@@ -58,7 +66,7 @@
             box-shadow: 0 0 5px rgba(137, 207, 240, 0.5);
         }
 
-        button[type="submit"], .biometric-button {
+        button[type="submit"], .biometric-button, #capture, #sendImage {
             background: linear-gradient(to right, #6a11cb, #2575fc);
             color: white;
             padding: 15px 30px;
@@ -73,8 +81,8 @@
             margin-top: 15px;
         }
 
-        button[type="submit"]:hover, .biometric-button:hover,
-        button[type="submit"]:focus, .biometric-button:focus {
+        button[type="submit"]:hover, .biometric-button:hover, #capture:hover, #sendImage:hover,
+        button[type="submit"]:focus, .biometric-button:focus, #capture:focus, #sendImage:focus {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
             outline: none;
@@ -133,6 +141,7 @@
         .logout-link {
             margin-top: 40px;
             text-align: center;
+            width: 100%;
         }
 
         .logout-link a {
@@ -149,8 +158,56 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        .biometric-button-container{
-          margin-top:20px;
+        .biometric-button-container {
+            margin-top: 20px;
+        }
+
+        #camera {
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            margin: 10px;
+            max-width: 100%;
+            height: auto;
+        }
+
+        #previewContainer {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            max-width: 100%;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        #canvas, #loading, #answer {
+            display: none;
+        }
+
+        #loading, #answer {
+            margin-top: 20px;
+            padding: 18px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            font-size: 16px;
+            color: #495057;
+        }
+
+        #loading {
+            font-weight: bold;
+            color: #007bff;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
@@ -159,17 +216,16 @@
 <body>
     <div class="container">
         <h1>Voter ID Authentication</h1>
-        <form method="POST">
-            <label for="aadhar_id">Enter Voter Aadhar ID:</label>
-            <input type="text" name="aadhar_id" required>
-            <button type="submit">Authenticate Voter</button>
-        </form>
-
-        {% if status_message %}
+        <div class="form-section">
+            <form method="POST">
+                <label for="aadhar_id">Enter Voter Aadhar ID:</label>
+                <input type="text" name="aadhar_id" required id="aadhar_id">
+                <button type="submit">Authenticate Voter</button>
+            </form>
+            {% if status_message %}
             <p class="message {% if "not found" in status_message %}error{% else %}success{% endif %}">{{ status_message }}</p>
-        {% endif %}
-
-        {% if voter_data %}
+            {% endif %}
+            {% if voter_data %}
             <div class="voter-info">
                 <p><strong>Name:</strong> {{ voter_data[1] }}</p>
                 <p><strong>Date of Birth:</strong> {{ voter_data[2] }}</p>
@@ -178,18 +234,92 @@
                 <p><strong>Address:</strong> {{ voter_data[5] }}</p>
             </div>
             {% if show_biometric %}
-                <div class="biometric-button-container">
-                    <form action="{{ url_for('biometric_verification') }}" method="POST">
-                        <input type="hidden" name="aadhar_id" value="{{ aadhar_id }}">
-                        <button type="submit" class="biometric-button">Biometric Verification</button>
-                    </form>
-                </div>
+            <div class="biometric-button-container">
+                <form action="{{ url_for('biometric_verification') }}" method="POST">
+                    <input type="hidden" name="aadhar_id" value="{{ aadhar_id }}">
+                    <button type="submit" class="biometric-button" id="biometricButton">Biometric Verification</button>
+                </form>
+            </div>
             {% endif %}
-        {% endif %}
-
+            {% endif %}
+        </div>
+        <div class="camera-section">
+            <video id="camera" autoplay></video>
+            <div id="previewContainer">
+                <img id="previewImage">
+                <button id="sendImage">Send Image</button>
+            </div>
+            <button id="capture">Capture Image</button>
+            <canvas id="canvas"></canvas>
+            <div id="loading">Loading...</div>
+            <div id="answer"></div>
+        </div>
         <div class="logout-link">
             <a href="{{ url_for('logout') }}">Logout</a>
         </div>
     </div>
+    <script>
+        const video = document.getElementById('camera');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const captureButton = document.getElementById('capture');
+        const sendImageButton = document.getElementById('sendImage');
+        const answerDiv = document.getElementById('answer');
+        const loadingDiv = document.getElementById('loading');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        let imageData;
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                answerDiv.textContent = 'Camera access denied or not found. Please check permissions and camera connection.';
+            }
+        }
+
+        startCamera();
+
+        captureButton.addEventListener('click', () => {
+            if (video.videoWidth && video.videoHeight) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                imageData = canvas.toDataURL('image/jpeg');
+                previewImage.src = imageData;
+                previewContainer.style.display = "flex";
+            } else {
+                answerDiv.textContent = 'Camera stream not ready. Please try again.';
+            }
+        });
+
+        sendImageButton.addEventListener('click', () => {
+            previewContainer.style.display = "none";
+            loadingDiv.style.display = "block";
+            fetch('/ask_gemini', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ image: imageData }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingDiv.style.display = "none";
+                if (data.answer) {
+                    document.getElementById("aadhar_id").value = data.answer;
+                } else if (data.error) {
+                    answerDiv.textContent = 'Error: ' + data.error;
+                }
+            })
+            .catch(error => {
+                loadingDiv.style.display = "none";
+                console.error('Error sending image to Gemini:', error);
+                answerDiv.textContent = 'An error occurred. Please try again.';
+            });
+        });
+    </script>
 </body>
 </html>
